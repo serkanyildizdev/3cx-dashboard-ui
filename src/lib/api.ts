@@ -94,10 +94,14 @@ export interface RealTimeStatus {
 }
 
 export interface HourlyDistribution {
-  hours: number[];
-  calls: number[];
-  answered: number[];
-  missed: number[];
+  hourly_stats: Array<{
+    hour: number;
+    call_count: number;
+  }>;
+  peak_hour: number;
+  period: string;
+  period_name: string;
+  total_calls: number;
 }
 
 export interface LeaderboardEntry {

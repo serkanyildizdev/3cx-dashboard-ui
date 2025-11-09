@@ -59,12 +59,10 @@ export default function HomePage() {
   }, [lastMessage]);
 
   // Prepare chart data
-  const chartData = hourlyData
-    ? hourlyData.hours.map((hour, index) => ({
-        hour: `${hour}:00`,
-        'Toplam': hourlyData.calls[index] || 0,
-        'Cevaplanan': hourlyData.answered[index] || 0,
-        'Kaçırılan': hourlyData.missed[index] || 0,
+  const chartData = hourlyData?.hourly_stats
+    ? hourlyData.hourly_stats.map((stat) => ({
+        hour: `${stat.hour}:00`,
+        'Çağrı Sayısı': stat.call_count || 0,
       }))
     : [];
 
@@ -275,9 +273,7 @@ export default function HomePage() {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="Toplam" fill="#3b82f6" />
-              <Bar dataKey="Cevaplanan" fill="#10b981" />
-              <Bar dataKey="Kaçırılan" fill="#ef4444" />
+              <Bar dataKey="Çağrı Sayısı" fill="#3b82f6" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
