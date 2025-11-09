@@ -81,16 +81,14 @@ export interface RealTimeStatus {
     total: number;
     available: number;
     on_call: number;
-    unavailable: number;
+    away: number;
+    busy: number;
   };
-  active_calls: Array<{
-    call_id: string;
-    agent_ext: string;
-    agent_name: string;
-    caller_number: string;
-    duration: number;
-    start_time: string;
-  }>;
+  sla_status: {
+    status: string;
+    message: string;
+  };
+  timestamp: string;
 }
 
 export interface HourlyDistribution {
@@ -115,15 +113,33 @@ export interface LeaderboardEntry {
   total_duration: number;
 }
 
+export interface LeaderboardResponse {
+  leaderboard: LeaderboardEntry[] | null;
+  metric: string;
+  period: string;
+  period_name: string;
+  team_average: {
+    calls_per_agent: number;
+    duration_per_agent: number;
+  };
+}
+
 export interface SLAMetrics {
-  target_answer_rate: number;
-  current_answer_rate: number;
-  target_avg_duration: number;
-  current_avg_duration: number;
-  calls_within_sla: number;
-  total_calls: number;
-  sla_compliance: number;
-  status: 'ok' | 'warning' | 'critical';
+  metrics: {
+    abandonment_rate: number;
+    answer_rate: number;
+    answered_calls: number;
+    average_duration: number;
+    missed_calls: number;
+    total_calls: number;
+  };
+  sla: {
+    compliance: number;
+    status: string;
+    target: number;
+  };
+  period: string;
+  period_name: string;
 }
 
 export interface ComparisonData {
@@ -171,7 +187,7 @@ export const dashboardAPI = {
   getHourlyDistribution: (period: string = 'today') =>
     api.get<APIResponse<HourlyDistribution>>(`/dashboard/hourly?period=${period}`),
   getLeaderboard: (period: string = 'today', limit: number = 10) =>
-    api.get<APIResponse<LeaderboardEntry[]>>(`/dashboard/leaderboard?period=${period}&limit=${limit}`),
+    api.get<APIResponse<LeaderboardResponse>>(`/dashboard/leaderboard?period=${period}&limit=${limit}`),
   getSLAMetrics: (period: string = 'today') =>
     api.get<APIResponse<SLAMetrics>>(`/dashboard/sla?period=${period}`),
 };

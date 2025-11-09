@@ -5,7 +5,7 @@ import { Trophy, Medal, Award } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { dashboardAPI, LeaderboardEntry } from '@/lib/api';
+import { dashboardAPI, LeaderboardEntry, LeaderboardResponse } from '@/lib/api';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function LeaderboardPage() {
@@ -16,7 +16,9 @@ export default function LeaderboardPage() {
     const fetchData = async () => {
       try {
         const res = await dashboardAPI.getLeaderboard('today', 20);
-        if (res.data.data) setData(res.data.data);
+        if (res.data.data?.leaderboard) {
+          setData(res.data.data.leaderboard);
+        }
       } catch (error) {
         console.error('Failed to fetch leaderboard:', error);
       } finally {
@@ -54,10 +56,17 @@ export default function LeaderboardPage() {
       <Card>
         <CardHeader>
           <CardTitle>Bugünkü Performans Sıralaması</CardTitle>
-          <CardDescription>Yanıt oranı ve çağrı sayısına göre</CardDescription>
+          <CardDescription>
+            {data.length > 0 ? `${data.length} ajan sıralandı` : 'Henüz veri yok'}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
+          {data.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              Bugün henüz çağrı verisi bulunmamaktadır
+            </div>
+          ) : (
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-16">Sıra</TableHead>
@@ -96,6 +105,7 @@ export default function LeaderboardPage() {
               ))}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
     </div>
