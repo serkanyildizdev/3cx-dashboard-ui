@@ -7,8 +7,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { dashboardAPI, LeaderboardEntry, LeaderboardResponse } from '@/lib/api';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function LeaderboardPage() {
+  const { t } = useLanguage();
   const [data, setData] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -40,7 +42,7 @@ export default function LeaderboardPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">Liderlik Tablosu</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t.leaderboard.title}</h1>
         <Skeleton className="h-96 w-full" />
       </div>
     );
@@ -49,33 +51,33 @@ export default function LeaderboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Liderlik Tablosu</h1>
-        <p className="text-gray-600 mt-1">En iyi performans gösteren ajanlar</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t.leaderboard.title}</h1>
+        <p className="text-gray-600 mt-1">{t.leaderboard.subtitle}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Bugünkü Performans Sıralaması</CardTitle>
+          <CardTitle>{t.leaderboard.todayRanking}</CardTitle>
           <CardDescription>
-            {data.length > 0 ? `${data.length} ajan sıralandı` : 'Henüz veri yok'}
+            {data.length > 0 ? `${data.length} ${t.leaderboard.ranked}` : t.leaderboard.noDataYet}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {data.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              Bugün henüz çağrı verisi bulunmamaktadır
+              {t.leaderboard.noDataYet}
             </div>
           ) : (
             <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-16">Sıra</TableHead>
-                <TableHead>Ajan</TableHead>
-                <TableHead className="text-right">Toplam Çağrı</TableHead>
-                <TableHead className="text-right">Cevaplanan</TableHead>
-                <TableHead className="text-right">Yanıt Oranı</TableHead>
-                <TableHead className="text-right">Ort. Süre</TableHead>
-                <TableHead className="text-right">Toplam Süre</TableHead>
+                <TableHead className="w-16">{t.leaderboard.rank}</TableHead>
+                <TableHead>{t.leaderboard.agent}</TableHead>
+                <TableHead className="text-right">{t.leaderboard.totalCalls}</TableHead>
+                <TableHead className="text-right">{t.leaderboard.answeredCalls}</TableHead>
+                <TableHead className="text-right">{t.leaderboard.answerRate}</TableHead>
+                <TableHead className="text-right">{t.leaderboard.avgDuration}</TableHead>
+                <TableHead className="text-right">{t.leaderboard.totalDuration}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

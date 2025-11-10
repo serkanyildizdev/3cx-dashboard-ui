@@ -7,8 +7,10 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { agentsAPI, Agent } from '@/lib/api';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Phone, PhoneOff } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function AgentsPage() {
+  const { t } = useLanguage();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,10 +40,10 @@ export default function AgentsPage() {
       'busy': 'destructive',
     };
     const statusLabels: Record<string, string> = {
-      'available': 'Müsait',
-      'on_call': 'Çağrıda',
-      'away': 'Uzakta',
-      'busy': 'Meşgul',
+      'available': t.agentStatus.available,
+      'on_call': t.agentStatus.on_call,
+      'away': t.agentStatus.away,
+      'busy': t.agentStatus.busy,
     };
     return <Badge variant={variants[status] || 'outline'}>{statusLabels[status] || status}</Badge>;
   };
@@ -49,7 +51,7 @@ export default function AgentsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">Ajanlar</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t.agents.title}</h1>
         <Skeleton className="h-96 w-full" />
       </div>
     );
@@ -58,8 +60,8 @@ export default function AgentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Destek Ekibi</h1>
-        <p className="text-gray-600 mt-1">{agents.length} ajan</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t.agents.title}</h1>
+        <p className="text-gray-600 mt-1">{agents.length} {t.agents.subtitle}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -98,17 +100,17 @@ export default function AgentsPage() {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Durum</span>
+                    <span className="text-sm text-gray-600">{t.agents.status}</span>
                     {getStatusBadge(agent.status)}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Giriş Durumu</span>
+                    <span className="text-sm text-gray-600">{t.agents.loginStatus}</span>
                     <Badge variant={agent.is_logged_in ? 'default' : 'outline'}>
-                      {agent.is_logged_in ? 'Online' : 'Offline'}
+                      {agent.is_logged_in ? t.agents.online : t.agents.offline}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Kuyruk</span>
+                    <span className="text-sm text-gray-600">{t.agents.queue}</span>
                     <span className="text-sm font-medium">{agent.queue_number}</span>
                   </div>
                 </div>

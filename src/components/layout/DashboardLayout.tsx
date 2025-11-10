@@ -85,11 +85,6 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               {isConnected ? t.common.connected : t.common.disconnected}
             </span>
           </div>
-
-          {/* Language Switcher */}
-          <div className="mt-4">
-            <LanguageSwitcher />
-          </div>
         </div>
 
         <nav className="px-4 space-y-1">
@@ -126,6 +121,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
 
       {/* Main Content */}
       <main className="flex-1 ml-64">
+        {/* Top Bar */}
+        <div className="bg-white border-b border-gray-200 px-8 py-4 flex justify-end items-center">
+          <LanguageSwitcher />
+        </div>
         <div className="p-8">{children}</div>
       </main>
     </div>

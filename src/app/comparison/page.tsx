@@ -6,8 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { compareAPI, ComparisonData } from '@/lib/api';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function ComparisonPage() {
+  const { t } = useLanguage();
   const [weeklyData, setWeeklyData] = useState<ComparisonData | null>(null);
   const [monthlyData, setMonthlyData] = useState<ComparisonData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,7 +61,7 @@ export default function ComparisonPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Mevcut Dönem</CardTitle>
+              <CardTitle>{data.current_week ? t.comparison.currentWeek : t.comparison.currentMonth}</CardTitle>
               <CardDescription>
                 {new Date(currentPeriod?.period_start || '').toLocaleDateString('tr-TR')} -{' '}
                 {new Date(currentPeriod?.period_end || '').toLocaleDateString('tr-TR')}
@@ -67,23 +69,23 @@ export default function ComparisonPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Toplam Çağrı</span>
+                <span className="text-sm text-gray-600">{t.statistics.totalCalls}</span>
                 <span className="text-xl font-bold">{currentPeriod?.total_calls || 0}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Cevaplanan</span>
+                <span className="text-sm text-gray-600">{t.statistics.answered}</span>
                 <span className="text-xl font-bold text-green-600">{currentPeriod?.answered_calls || 0}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Kaçırılan</span>
+                <span className="text-sm text-gray-600">{t.statistics.missed}</span>
                 <span className="text-xl font-bold text-red-600">{currentPeriod?.missed_calls || 0}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Ort. Süre</span>
+                <span className="text-sm text-gray-600">{t.statistics.avgDuration}</span>
                 <span className="text-xl font-bold">{currentPeriod?.average_duration.toFixed(0) || 0}s</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Benzersiz Arayan</span>
+                <span className="text-sm text-gray-600">{t.common.total}</span>
                 <span className="text-xl font-bold">{currentPeriod?.unique_callers || 0}</span>
               </div>
             </CardContent>
@@ -91,7 +93,7 @@ export default function ComparisonPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Önceki Dönem</CardTitle>
+              <CardTitle>{data.previous_week ? t.comparison.previousWeek : t.comparison.previousMonth}</CardTitle>
               <CardDescription>
                 {new Date(previousPeriod?.period_start || '').toLocaleDateString('tr-TR')} -{' '}
                 {new Date(previousPeriod?.period_end || '').toLocaleDateString('tr-TR')}
@@ -99,23 +101,23 @@ export default function ComparisonPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Toplam Çağrı</span>
+                <span className="text-sm text-gray-600">{t.statistics.totalCalls}</span>
                 <span className="text-xl font-bold">{previousPeriod?.total_calls || 0}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Cevaplanan</span>
+                <span className="text-sm text-gray-600">{t.statistics.answered}</span>
                 <span className="text-xl font-bold text-green-600">{previousPeriod?.answered_calls || 0}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Kaçırılan</span>
+                <span className="text-sm text-gray-600">{t.statistics.missed}</span>
                 <span className="text-xl font-bold text-red-600">{previousPeriod?.missed_calls || 0}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Ort. Süre</span>
+                <span className="text-sm text-gray-600">{t.statistics.avgDuration}</span>
                 <span className="text-xl font-bold">{previousPeriod?.average_duration.toFixed(0) || 0}s</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Benzersiz Arayan</span>
+                <span className="text-sm text-gray-600">{t.common.total}</span>
                 <span className="text-xl font-bold">{previousPeriod?.unique_callers || 0}</span>
               </div>
             </CardContent>
@@ -124,8 +126,8 @@ export default function ComparisonPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Değişim Analizi</CardTitle>
-            <CardDescription>Önceki döneme göre yüzdelik değişim</CardDescription>
+            <CardTitle>{t.comparison.trend}</CardTitle>
+            <CardDescription>{t.comparison.subtitle}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -136,7 +138,7 @@ export default function ComparisonPage() {
                     {data.comparison.calls_change}
                   </span>
                 </div>
-                <span className="text-xs text-gray-600">Toplam Çağrı</span>
+                <span className="text-xs text-gray-600">{t.statistics.totalCalls}</span>
               </div>
 
               <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
@@ -146,7 +148,7 @@ export default function ComparisonPage() {
                     {data.comparison.answered_change}
                   </span>
                 </div>
-                <span className="text-xs text-gray-600">Cevaplanan</span>
+                <span className="text-xs text-gray-600">{t.statistics.answered}</span>
               </div>
 
               <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
@@ -156,7 +158,7 @@ export default function ComparisonPage() {
                     {data.comparison.missed_change}
                   </span>
                 </div>
-                <span className="text-xs text-gray-600">Kaçırılan</span>
+                <span className="text-xs text-gray-600">{t.statistics.missed}</span>
               </div>
 
               <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
@@ -166,7 +168,7 @@ export default function ComparisonPage() {
                     {data.comparison.duration_change}
                   </span>
                 </div>
-                <span className="text-xs text-gray-600">Ort. Süre</span>
+                <span className="text-xs text-gray-600">{t.statistics.avgDuration}</span>
               </div>
 
               <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
@@ -176,7 +178,7 @@ export default function ComparisonPage() {
                     {data.comparison.callers_change}
                   </span>
                 </div>
-                <span className="text-xs text-gray-600">Benzersiz Arayan</span>
+                <span className="text-xs text-gray-600">{t.common.total}</span>
               </div>
             </div>
           </CardContent>
@@ -188,7 +190,7 @@ export default function ComparisonPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">Performans Karşılaştırma</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t.comparison.title}</h1>
         <Skeleton className="h-96 w-full" />
       </div>
     );
@@ -197,14 +199,14 @@ export default function ComparisonPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Performans Karşılaştırma</h1>
-        <p className="text-gray-600 mt-1">Dönemler arası performans analizi</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t.comparison.title}</h1>
+        <p className="text-gray-600 mt-1">{t.comparison.subtitle}</p>
       </div>
 
       <Tabs defaultValue="weekly" className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="weekly">Haftalık</TabsTrigger>
-          <TabsTrigger value="monthly">Aylık</TabsTrigger>
+          <TabsTrigger value="weekly">{t.comparison.weekly}</TabsTrigger>
+          <TabsTrigger value="monthly">{t.comparison.monthly}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="weekly" className="mt-6">

@@ -16,11 +16,13 @@ import {
   Agent
 } from '@/lib/api';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { formatDistance } from 'date-fns';
 import { tr } from 'date-fns/locale';
 
 export default function HomePage() {
+  const { t } = useLanguage();
   const [realTimeData, setRealTimeData] = useState<RealTimeStatus | null>(null);
   const [slaData, setSlaData] = useState<SLAMetrics | null>(null);
   const [hourlyData, setHourlyData] = useState<HourlyDistribution | null>(null);
@@ -77,7 +79,7 @@ export default function HomePage() {
   const chartData = hourlyData?.hourly_stats
     ? hourlyData.hourly_stats.map((stat) => ({
         hour: `${stat.hour}:00`,
-        'Çağrı Sayısı': stat.call_count || 0,
+        [t.dashboard.callCount]: stat.call_count || 0,
       }))
     : [];
 
@@ -85,8 +87,8 @@ export default function HomePage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gerçek Zamanlı Dashboard</h1>
-          <p className="text-gray-600 mt-1">Anlık destek ekibi performansı</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t.dashboard.title}</h1>
+          <p className="text-gray-600 mt-1">{t.dashboard.subtitle}</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[...Array(4)].map((_, i) => (
@@ -109,11 +111,11 @@ export default function HomePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gerçek Zamanlı Dashboard</h1>
-          <p className="text-gray-600 mt-1">Anlık destek ekibi performansı</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t.dashboard.title}</h1>
+          <p className="text-gray-600 mt-1">{t.dashboard.subtitle}</p>
         </div>
         <Badge variant={isConnected ? 'default' : 'destructive'}>
-          {isConnected ? '🟢 Canlı' : '🔴 Bağlantı Yok'}
+          {isConnected ? `🟢 ${t.common.live}` : `🔴 ${t.common.offline}`}
         </Badge>
       </div>
 
@@ -121,20 +123,20 @@ export default function HomePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aktif Çağrılar</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.dashboard.activeCalls}</CardTitle>
             <Phone className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{realTimeData?.queue.active_calls || 0}</div>
             <p className="text-xs text-gray-500 mt-1">
-              Kuyrukta: {realTimeData?.queue.calls_in_queue || 0}
+              {t.dashboard.inQueue}: {realTimeData?.queue.calls_in_queue || 0}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Müsait Ajanlar</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.dashboard.availableAgents}</CardTitle>
             <Users className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -142,14 +144,14 @@ export default function HomePage() {
               {realTimeData?.agents.available || 0}
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Toplam: {realTimeData?.agents.total || 0}
+              {t.common.total}: {realTimeData?.agents.total || 0}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Çağrıda</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.dashboard.onCall}</CardTitle>
             <Activity className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
@@ -157,14 +159,14 @@ export default function HomePage() {
               {realTimeData?.agents.on_call || 0}
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              Away: {realTimeData?.agents.away || 0} | Busy: {realTimeData?.agents.busy || 0}
+              {t.dashboard.away}: {realTimeData?.agents.away || 0} | {t.dashboard.busy}: {realTimeData?.agents.busy || 0}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">SLA Uyumluluğu</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.dashboard.slaCompliance}</CardTitle>
             <Clock className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
@@ -172,7 +174,7 @@ export default function HomePage() {
               {slaData?.sla?.compliance?.toFixed(1) || 0}%
             </div>
             <p className="text-xs text-gray-500 mt-1">
-              {slaData?.metrics?.answered_calls || 0}/{slaData?.metrics?.total_calls || 0} çağrı
+              {slaData?.metrics?.answered_calls || 0}/{slaData?.metrics?.total_calls || 0}
             </p>
           </CardContent>
         </Card>
@@ -181,14 +183,14 @@ export default function HomePage() {
       {/* SLA Metrics Card */}
       <Card>
         <CardHeader>
-          <CardTitle>SLA Metrikleri</CardTitle>
-          <CardDescription>Bugünkü performans göstergeleri</CardDescription>
+          <CardTitle>{t.dashboard.slaMetrics}</CardTitle>
+          <CardDescription>{t.dashboard.slaSubtitle}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Yanıt Oranı</span>
+                <span className="text-sm font-medium text-gray-700">{t.dashboard.answerRate}</span>
                 <Badge
                   variant={
                     (slaData?.metrics?.answer_rate || 0) >= (slaData?.sla?.target || 0)
@@ -200,7 +202,7 @@ export default function HomePage() {
                 </Badge>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <span>Hedef: {slaData?.sla?.target || 0}%</span>
+                <span>{t.dashboard.target}: {slaData?.sla?.target || 0}%</span>
                 {(slaData?.metrics?.answer_rate || 0) >= (slaData?.sla?.target || 0) ? (
                   <TrendingUp className="h-4 w-4 text-green-600" />
                 ) : (
@@ -211,25 +213,25 @@ export default function HomePage() {
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Ortalama Süre</span>
+                <span className="text-sm font-medium text-gray-700">{t.dashboard.averageDuration}</span>
                 <Badge variant="default">
                   {slaData?.metrics?.average_duration?.toFixed(0) || 0}s
                 </Badge>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <span>{slaData?.metrics?.answered_calls || 0} çağrı</span>
+                <span>{slaData?.metrics?.answered_calls || 0}</span>
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-700">Terk Oranı</span>
+                <span className="text-sm font-medium text-gray-700">{t.dashboard.abandonmentRate}</span>
                 <Badge variant="secondary">
                   {slaData?.metrics?.abandonment_rate?.toFixed(1) || 0}%
                 </Badge>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-600">
-                <span>{slaData?.metrics?.missed_calls || 0} kaçırılan</span>
+                <span>{slaData?.metrics?.missed_calls || 0} {t.dashboard.missed}</span>
               </div>
             </div>
           </div>
@@ -244,8 +246,8 @@ export default function HomePage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Aktif Çağrılar</CardTitle>
-                <CardDescription>{activeCalls.length} devam eden görüşme</CardDescription>
+                <CardTitle>{t.dashboard.activeCallsSection}</CardTitle>
+                <CardDescription>{activeCalls.length} {t.dashboard.ongoingCalls}</CardDescription>
               </div>
               <PhoneCall className="h-5 w-5 text-green-600 animate-pulse" />
             </div>
@@ -253,7 +255,7 @@ export default function HomePage() {
           <CardContent>
             {activeCalls.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                Şu anda aktif çağrı yok
+                {t.dashboard.noActiveCalls}
               </div>
             ) : (
               <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -269,7 +271,7 @@ export default function HomePage() {
                           {call.caller_number}
                         </div>
                         <div className="text-sm text-gray-600">
-                          Ajan {call.agent_ext} • {formatDistance(new Date(call.start_time), new Date(), { addSuffix: true, locale: tr })}
+                          {t.dashboard.agent} {call.agent_ext} • {formatDistance(new Date(call.start_time), new Date(), { addSuffix: true, locale: tr })}
                         </div>
                       </div>
                     </div>
@@ -291,8 +293,8 @@ export default function HomePage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Ekip Durumu</CardTitle>
-                <CardDescription>{agents.length} ajan</CardDescription>
+                <CardTitle>{t.dashboard.teamStatus}</CardTitle>
+                <CardDescription>{agents.length} {t.agents.subtitle}</CardDescription>
               </div>
               <Users className="h-5 w-5 text-blue-600" />
             </div>
@@ -307,10 +309,10 @@ export default function HomePage() {
                   'busy': 'bg-red-100 border-red-300 text-red-800',
                 };
                 const statusLabels: Record<string, string> = {
-                  'available': 'Müsait',
-                  'on_call': 'Çağrıda',
-                  'away': 'Uzakta',
-                  'busy': 'Meşgul',
+                  'available': t.agentStatus.available,
+                  'on_call': t.agentStatus.on_call,
+                  'away': t.agentStatus.away,
+                  'busy': t.agentStatus.busy,
                 };
 
                 return (
@@ -349,8 +351,8 @@ export default function HomePage() {
       {/* Hourly Distribution Chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Saatlik Dağılım</CardTitle>
-          <CardDescription>Bugünkü çağrı dağılımı - Toplam: {hourlyData?.total_calls || 0} çağrı</CardDescription>
+          <CardTitle>{t.dashboard.hourlyDistribution}</CardTitle>
+          <CardDescription>{t.dashboard.hourlySubtitle} - {t.common.total}: {hourlyData?.total_calls || 0}</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -360,7 +362,7 @@ export default function HomePage() {
               <YAxis />
               <Tooltip />
               <Legend />
-              <Bar dataKey="Çağrı Sayısı" fill="#3b82f6" />
+              <Bar dataKey={t.dashboard.callCount} fill="#3b82f6" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -373,7 +375,7 @@ export default function HomePage() {
             <div className="flex items-center space-x-3">
               <Timer className="h-8 w-8 text-purple-600" />
               <div>
-                <div className="text-sm text-gray-600">Uzakta</div>
+                <div className="text-sm text-gray-600">{t.dashboard.away}</div>
                 <div className="text-2xl font-bold text-purple-600">
                   {realTimeData?.agents.away || 0}
                 </div>
@@ -387,7 +389,7 @@ export default function HomePage() {
             <div className="flex items-center space-x-3">
               <AlertCircle className="h-8 w-8 text-red-600" />
               <div>
-                <div className="text-sm text-gray-600">Meşgul</div>
+                <div className="text-sm text-gray-600">{t.dashboard.busy}</div>
                 <div className="text-2xl font-bold text-red-600">
                   {realTimeData?.agents.busy || 0}
                 </div>
@@ -401,7 +403,7 @@ export default function HomePage() {
             <div className="flex items-center space-x-3">
               <Clock className="h-8 w-8 text-orange-600" />
               <div>
-                <div className="text-sm text-gray-600">En Uzun Bekleyen</div>
+                <div className="text-sm text-gray-600">{t.dashboard.longestWait}</div>
                 <div className="text-2xl font-bold text-orange-600">
                   {realTimeData?.queue.longest_wait_seconds || 0}s
                 </div>
@@ -415,7 +417,7 @@ export default function HomePage() {
             <div className="flex items-center space-x-3">
               <PhoneCall className="h-8 w-8 text-green-600" />
               <div>
-                <div className="text-sm text-gray-600">Tepe Saat</div>
+                <div className="text-sm text-gray-600">{t.dashboard.peakHour}</div>
                 <div className="text-2xl font-bold text-green-600">
                   {hourlyData?.peak_hour || 0}:00
                 </div>
