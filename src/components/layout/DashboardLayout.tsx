@@ -47,6 +47,13 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const { isConnected } = useWebSocket();
   const { t } = useLanguage();
 
+  // Hide sidebar for display page (TV mode)
+  const isDisplayPage = pathname === '/display';
+
+  if (isDisplayPage) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
