@@ -16,7 +16,11 @@ export default function StatisticsPage() {
       setLoading(true);
       try {
         const res = await statsAPI.getAllAgentsStats(period);
-        if (res.data.data) setStats(res.data.data.agents);
+        if (res.data.data?.agents) {
+          setStats(res.data.data.agents);
+        } else {
+          setStats([]);
+        }
       } catch (error) {
         console.error('Failed to fetch stats:', error);
       } finally {

@@ -72,6 +72,18 @@ export interface Call {
   status: string;
 }
 
+export interface CallsResponse {
+  calls: Call[] | null;
+  total: number;
+}
+
+export interface CallHistoryResponse {
+  calls: Call[] | null;
+  period: string;
+  period_name: string;
+  total: number;
+}
+
 // Dashboard types
 export interface RealTimeStatus {
   queue: {
@@ -169,7 +181,7 @@ export const agentsAPI = {
 };
 
 export const callsAPI = {
-  getActive: () => api.get<APIResponse<Call[]>>('/calls/active'),
+  getActive: () => api.get<APIResponse<CallsResponse>>('/calls/active'),
   getActiveCount: () => api.get<APIResponse<{ count: number }>>('/calls/active/count'),
 };
 
@@ -181,7 +193,7 @@ export const statsAPI = {
   getAllAgentsStats: (period: string = 'today') =>
     api.get<APIResponse<{ period: string; period_name: string; agents: AgentCallStatistics[]; total: number }>>(`/stats/agents?period=${period}`),
   getCallHistory: (period: string = 'today', limit: number = 100) =>
-    api.get<APIResponse<{ period: string; period_name: string; calls: Call[]; total: number }>>(`/stats/history?period=${period}&limit=${limit}`),
+    api.get<APIResponse<CallHistoryResponse>>(`/stats/history?period=${period}&limit=${limit}`),
 };
 
 export const dashboardAPI = {

@@ -16,7 +16,11 @@ export default function CallsPage() {
     const fetchData = async () => {
       try {
         const res = await callsAPI.getActive();
-        if (res.data.data) setCalls(res.data.data);
+        if (res.data.data?.calls) {
+          setCalls(res.data.data.calls);
+        } else {
+          setCalls([]);
+        }
       } catch (error) {
         console.error('Failed to fetch calls:', error);
       } finally {
