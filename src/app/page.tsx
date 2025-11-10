@@ -1,18 +1,31 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Activity, Phone, Users, Clock, TrendingUp, TrendingDown } from 'lucide-react';
+import { Activity, Phone, Users, Clock, TrendingUp, TrendingDown, PhoneCall, PhoneOff, Timer, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { dashboardAPI, RealTimeStatus, SLAMetrics, HourlyDistribution } from '@/lib/api';
+import {
+  dashboardAPI,
+  callsAPI,
+  agentsAPI,
+  RealTimeStatus,
+  SLAMetrics,
+  HourlyDistribution,
+  Call,
+  Agent
+} from '@/lib/api';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { formatDistance } from 'date-fns';
+import { tr } from 'date-fns/locale';
 
 export default function HomePage() {
   const [realTimeData, setRealTimeData] = useState<RealTimeStatus | null>(null);
   const [slaData, setSlaData] = useState<SLAMetrics | null>(null);
   const [hourlyData, setHourlyData] = useState<HourlyDistribution | null>(null);
+  const [activeCalls, setActiveCalls] = useState<Call[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const { isConnected, lastMessage } = useWebSocket();
 
@@ -20,15 +33,19 @@ export default function HomePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [realTimeRes, slaRes, hourlyRes] = await Promise.all([
+        const [realTimeRes, slaRes, hourlyRes, callsRes, agentsRes] = await Promise.all([
           dashboardAPI.getRealTimeStatus(),
           dashboardAPI.getSLAMetrics('today'),
           dashboardAPI.getHourlyDistribution('today'),
+          callsAPI.getActive(),
+          agentsAPI.getAll(),
         ]);
 
         if (realTimeRes.data.data) setRealTimeData(realTimeRes.data.data);
         if (slaRes.data.data) setSlaData(slaRes.data.data);
         if (hourlyRes.data.data) setHourlyData(hourlyRes.data.data);
+        if (callsRes.data.data?.calls) setActiveCalls(callsRes.data.data.calls);
+        if (agentsRes.data.data?.agents) setAgents(agentsRes.data.data.agents);
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
       } finally {
@@ -38,8 +55,8 @@ export default function HomePage() {
 
     fetchData();
 
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchData, 30000);
+    // Refresh every 5 seconds for real-time feel
+    const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -220,11 +237,120 @@ export default function HomePage() {
       </Card>
 
 
+      {/* Active Calls and Agents Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Active Calls */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Aktif Çağrılar</CardTitle>
+                <CardDescription>{activeCalls.length} devam eden görüşme</CardDescription>
+              </div>
+              <PhoneCall className="h-5 w-5 text-green-600 animate-pulse" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            {activeCalls.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                Şu anda aktif çağrı yok
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {activeCalls.map((call) => (
+                  <div
+                    key={call.id}
+                    className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="h-3 w-3 bg-green-500 rounded-full animate-pulse" />
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {call.caller_number}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          Ajan {call.agent_ext} • {formatDistance(new Date(call.start_time), new Date(), { addSuffix: true, locale: tr })}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-medium text-gray-900">
+                        {Math.floor(call.duration / 60)}:{(call.duration % 60).toString().padStart(2, '0')}
+                      </div>
+                      <div className="text-xs text-gray-500">{call.status}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Team Status */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Ekip Durumu</CardTitle>
+                <CardDescription>{agents.length} ajan</CardDescription>
+              </div>
+              <Users className="h-5 w-5 text-blue-600" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {agents.map((agent) => {
+                const statusColors: Record<string, string> = {
+                  'available': 'bg-green-100 border-green-300 text-green-800',
+                  'on_call': 'bg-blue-100 border-blue-300 text-blue-800',
+                  'away': 'bg-yellow-100 border-yellow-300 text-yellow-800',
+                  'busy': 'bg-red-100 border-red-300 text-red-800',
+                };
+                const statusLabels: Record<string, string> = {
+                  'available': 'Müsait',
+                  'on_call': 'Çağrıda',
+                  'away': 'Uzakta',
+                  'busy': 'Meşgul',
+                };
+
+                return (
+                  <div
+                    key={agent.extension}
+                    className={`flex items-center justify-between p-3 rounded-lg border ${
+                      statusColors[agent.status] || 'bg-gray-100 border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      {agent.is_logged_in ? (
+                        agent.status === 'on_call' ? (
+                          <Phone className="h-4 w-4 animate-pulse" />
+                        ) : (
+                          <Phone className="h-4 w-4" />
+                        )
+                      ) : (
+                        <PhoneOff className="h-4 w-4 text-gray-400" />
+                      )}
+                      <div>
+                        <div className="font-medium">{agent.name}</div>
+                        <div className="text-xs">Ext: {agent.extension}</div>
+                      </div>
+                    </div>
+                    <div className="text-sm font-medium">
+                      {statusLabels[agent.status] || agent.status}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Hourly Distribution Chart */}
       <Card>
         <CardHeader>
           <CardTitle>Saatlik Dağılım</CardTitle>
-          <CardDescription>Bugünkü çağrı dağılımı</CardDescription>
+          <CardDescription>Bugünkü çağrı dağılımı - Toplam: {hourlyData?.total_calls || 0} çağrı</CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -239,6 +365,65 @@ export default function HomePage() {
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      {/* Quick Stats Footer */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <Timer className="h-8 w-8 text-purple-600" />
+              <div>
+                <div className="text-sm text-gray-600">Uzakta</div>
+                <div className="text-2xl font-bold text-purple-600">
+                  {realTimeData?.agents.away || 0}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <AlertCircle className="h-8 w-8 text-red-600" />
+              <div>
+                <div className="text-sm text-gray-600">Meşgul</div>
+                <div className="text-2xl font-bold text-red-600">
+                  {realTimeData?.agents.busy || 0}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <Clock className="h-8 w-8 text-orange-600" />
+              <div>
+                <div className="text-sm text-gray-600">En Uzun Bekleyen</div>
+                <div className="text-2xl font-bold text-orange-600">
+                  {realTimeData?.queue.longest_wait_seconds || 0}s
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-3">
+              <PhoneCall className="h-8 w-8 text-green-600" />
+              <div>
+                <div className="text-sm text-gray-600">Tepe Saat</div>
+                <div className="text-2xl font-bold text-green-600">
+                  {hourlyData?.peak_hour || 0}:00
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

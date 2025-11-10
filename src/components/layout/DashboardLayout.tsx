@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Clock,
   Activity,
+  Monitor,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +28,11 @@ const navigation: NavItem[] = [
     title: 'Gerçek Zamanlı',
     href: '/',
     icon: Activity,
+  },
+  {
+    title: 'TV Görünüm',
+    href: '/display',
+    icon: Monitor,
   },
   {
     title: 'Ajanlar',
