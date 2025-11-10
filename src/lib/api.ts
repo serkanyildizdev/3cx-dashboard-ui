@@ -24,16 +24,18 @@ export interface APIResponse<T = any> {
 
 // Agent types
 export interface Agent {
+  id: string;
   extension: string;
-  first_name: string;
-  last_name: string;
-  email: string;
+  name: string;
   status: string;
-  current_call?: {
-    caller_number: string;
-    duration: number;
-    start_time: string;
-  };
+  is_logged_in: boolean;
+  queue_number: string;
+  last_update: string;
+}
+
+export interface AgentsResponse {
+  agents: Agent[];
+  total: number;
 }
 
 // Call statistics types
@@ -161,7 +163,7 @@ export interface ComparisonData {
 
 // API functions
 export const agentsAPI = {
-  getAll: () => api.get<APIResponse<Agent[]>>('/agents'),
+  getAll: () => api.get<APIResponse<AgentsResponse>>('/agents'),
   getByExtension: (extension: string) => api.get<APIResponse<Agent>>(`/agents/${extension}`),
   getStatusSummary: () => api.get<APIResponse<any>>('/agents/status/summary'),
 };
