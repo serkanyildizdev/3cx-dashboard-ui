@@ -16,6 +16,8 @@ import {
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface NavItem {
   title: string;
@@ -23,47 +25,26 @@ interface NavItem {
   icon: any;
 }
 
-const navigation: NavItem[] = [
-  {
-    title: 'Gerçek Zamanlı',
-    href: '/',
-    icon: Activity,
-  },
-  {
-    title: 'TV Görünüm',
-    href: '/display',
-    icon: Monitor,
-  },
-  {
-    title: 'Ajanlar',
-    href: '/agents',
-    icon: Users,
-  },
-  {
-    title: 'Aktif Çağrılar',
-    href: '/calls',
-    icon: Phone,
-  },
-  {
-    title: 'İstatistikler',
-    href: '/statistics',
-    icon: BarChart3,
-  },
-  {
-    title: 'Karşılaştırma',
-    href: '/comparison',
-    icon: TrendingUp,
-  },
-  {
-    title: 'Liderlik Tablosu',
-    href: '/leaderboard',
-    icon: Clock,
-  },
+interface NavigationConfig {
+  key: keyof typeof import('../../messages/de.json')['navigation'];
+  href: string;
+  icon: any;
+}
+
+const navigationConfig: NavigationConfig[] = [
+  { key: 'realtime', href: '/', icon: Activity },
+  { key: 'tvDisplay', href: '/display', icon: Monitor },
+  { key: 'agents', href: '/agents', icon: Users },
+  { key: 'activeCalls', href: '/calls', icon: Phone },
+  { key: 'statistics', href: '/statistics', icon: BarChart3 },
+  { key: 'comparison', href: '/comparison', icon: TrendingUp },
+  { key: 'leaderboard', href: '/leaderboard', icon: Clock },
 ];
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { isConnected } = useWebSocket();
+  const { t } = useLanguage();
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -87,13 +68,18 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               )}
             />
             <span className="text-xs text-gray-600">
-              {isConnected ? 'Bağlı' : 'Bağlantı Kesildi'}
+              {isConnected ? t.common.connected : t.common.disconnected}
             </span>
+          </div>
+
+          {/* Language Switcher */}
+          <div className="mt-4">
+            <LanguageSwitcher />
           </div>
         </div>
 
         <nav className="px-4 space-y-1">
-          {navigation.map((item) => {
+          {navigationConfig.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
 
@@ -109,7 +95,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 )}
               >
                 <Icon className="h-5 w-5" />
-                <span>{item.title}</span>
+                <span>{t.navigation[item.key]}</span>
               </Link>
             );
           })}

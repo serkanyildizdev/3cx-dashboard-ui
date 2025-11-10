@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -19,9 +20,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr">
+    <html lang="de">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <DashboardLayout>{children}</DashboardLayout>
+        <LanguageProvider>
+          <DashboardLayout>{children}</DashboardLayout>
+        </LanguageProvider>
       </body>
     </html>
   );
