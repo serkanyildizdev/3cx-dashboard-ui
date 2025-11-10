@@ -54,8 +54,8 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center space-x-2">
             <LayoutDashboard className="h-8 w-8 text-blue-600" />
             <div>
-              <h1 className="text-xl font-bold text-gray-900">3CX Dashboard</h1>
-              <p className="text-xs text-gray-500">Support Team</p>
+              <h1 className="text-xl font-bold text-gray-900">Spiegel21</h1>
+              <p className="text-xs text-gray-500">Support Dashboard</p>
             </div>
           </div>
 
