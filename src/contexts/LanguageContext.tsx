@@ -25,20 +25,22 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Locale>('de');
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Load language from localStorage
-    const saved = localStorage.getItem('language') as Locale;
-    if (saved && ['de', 'en', 'tr'].includes(saved)) {
-      setLanguageState(saved);
+    // Load language from localStorage on client
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('language') as Locale;
+      if (saved && ['de', 'en', 'tr'].includes(saved)) {
+        setLanguageState(saved);
+      }
     }
-    setMounted(true);
   }, []);
 
   const setLanguage = (lang: Locale) => {
     setLanguageState(lang);
-    localStorage.setItem('language', lang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('language', lang);
+    }
   };
 
   const value: LanguageContextType = {
@@ -46,11 +48,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     setLanguage,
     t: messages[language],
   };
-
-  // Prevent hydration mismatch
-  if (!mounted) {
-    return <>{children}</>;
-  }
 
   return (
     <LanguageContext.Provider value={value}>
