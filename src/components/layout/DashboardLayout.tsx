@@ -2,6 +2,7 @@
 
 import { ReactNode } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -51,12 +52,18 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 fixed h-full">
         <div className="p-6">
-          <div className="flex items-center space-x-2">
-            <LayoutDashboard className="h-8 w-8 text-blue-600" />
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Spiegel21</h1>
-              <p className="text-xs text-gray-500">Support Dashboard</p>
-            </div>
+          <div className="flex items-center space-x-3">
+            <Image
+              src="/logo.png"
+              alt="Spiegel21 Logo"
+              width={120}
+              height={40}
+              className="object-contain"
+              priority
+            />
+          </div>
+          <div className="mt-2">
+            <p className="text-xs text-gray-500">Support Dashboard</p>
           </div>
 
           {/* WebSocket Status */}

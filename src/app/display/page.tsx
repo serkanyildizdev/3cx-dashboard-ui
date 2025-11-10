@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -71,11 +72,21 @@ export default function DisplayPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 p-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-6xl font-bold text-white mb-2">
-            3CX Support Dashboard
-          </h1>
-          <p className="text-2xl text-blue-200">Spiegel21 Destek Ekibi</p>
+        <div className="flex items-center space-x-6">
+          <Image
+            src="/logo.png"
+            alt="Spiegel21 Logo"
+            width={240}
+            height={80}
+            className="object-contain"
+            priority
+          />
+          <div>
+            <h1 className="text-5xl font-bold text-white mb-2">
+              Support Dashboard
+            </h1>
+            <p className="text-2xl text-blue-200">Echtzeit-Überwachung</p>
+          </div>
         </div>
         <div className="text-right">
           <div className="text-5xl font-bold text-white">
