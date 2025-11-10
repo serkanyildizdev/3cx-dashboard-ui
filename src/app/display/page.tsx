@@ -14,8 +14,10 @@ import {
 } from '@/lib/api';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { Trophy, TrendingUp, TrendingDown, Phone, Users, Clock, Award } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function DisplayPage() {
+  const { t, language } = useLanguage();
   const [realTimeData, setRealTimeData] = useState<RealTimeStatus | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [comparison, setComparison] = useState<ComparisonData | null>(null);
@@ -83,17 +85,17 @@ export default function DisplayPage() {
           />
           <div>
             <h1 className="text-5xl font-bold text-white mb-2">
-              Support Dashboard
+              {t.display.title}
             </h1>
-            <p className="text-2xl text-blue-200">Echtzeit-Überwachung</p>
+            <p className="text-2xl text-blue-200">{t.display.subtitle}</p>
           </div>
         </div>
         <div className="text-right">
           <div className="text-5xl font-bold text-white">
-            {currentTime.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+            {currentTime.toLocaleTimeString(language === 'tr' ? 'tr-TR' : language === 'de' ? 'de-DE' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
           </div>
           <div className="text-xl text-blue-200 mt-2">
-            {currentTime.toLocaleDateString('tr-TR', {
+            {currentTime.toLocaleDateString(language === 'tr' ? 'tr-TR' : language === 'de' ? 'de-DE' : 'en-US', {
               weekday: 'long',
               year: 'numeric',
               month: 'long',
@@ -104,7 +106,7 @@ export default function DisplayPage() {
             variant={isConnected ? 'default' : 'destructive'}
             className="mt-3 text-lg px-4 py-2"
           >
-            {isConnected ? '🟢 CANLI' : '🔴 BAĞLANTI YOK'}
+            {isConnected ? `🟢 ${t.display.live}` : `🔴 ${t.display.disconnected}`}
           </Badge>
         </div>
       </div>
@@ -121,9 +123,9 @@ export default function DisplayPage() {
             <div className="text-7xl font-bold text-white mb-2">
               {realTimeData?.queue.active_calls || 0}
             </div>
-            <div className="text-xl text-blue-100">Aktif Çağrı</div>
+            <div className="text-xl text-blue-100">{t.display.activeCalls}</div>
             <div className="text-lg text-blue-200 mt-2">
-              Kuyrukta: {realTimeData?.queue.calls_in_queue || 0}
+              {t.display.inQueue}: {realTimeData?.queue.calls_in_queue || 0}
             </div>
           </CardContent>
         </Card>
@@ -137,9 +139,9 @@ export default function DisplayPage() {
             <div className="text-7xl font-bold text-white mb-2">
               {realTimeData?.agents.available || 0}
             </div>
-            <div className="text-xl text-green-100">Müsait Ajan</div>
+            <div className="text-xl text-green-100">{t.display.availableAgents}</div>
             <div className="text-lg text-green-200 mt-2">
-              Toplam: {realTimeData?.agents.total || 0}
+              {t.common.total}: {realTimeData?.agents.total || 0}
             </div>
           </CardContent>
         </Card>
@@ -162,9 +164,9 @@ export default function DisplayPage() {
             <div className="text-7xl font-bold text-white mb-2">
               {todayStats?.total_calls || 0}
             </div>
-            <div className="text-xl text-purple-100">Bugünkü Çağrı</div>
+            <div className="text-xl text-purple-100">{t.display.todaysCalls}</div>
             <div className="text-lg text-purple-200 mt-2">
-              Dün: {yesterday?.total_calls || 0}
+              {t.display.yesterday}: {yesterday?.total_calls || 0}
             </div>
           </CardContent>
         </Card>
@@ -178,9 +180,9 @@ export default function DisplayPage() {
             <div className="text-7xl font-bold text-white mb-2">
               {todayStats ? ((todayStats.answered_calls / (todayStats.total_calls || 1)) * 100).toFixed(0) : 0}%
             </div>
-            <div className="text-xl text-orange-100">Yanıt Oranı</div>
+            <div className="text-xl text-orange-100">{t.display.answerRate}</div>
             <div className="text-lg text-orange-200 mt-2">
-              {todayStats?.answered_calls || 0}/{todayStats?.total_calls || 0} Cevaplandı
+              {todayStats?.answered_calls || 0}/{todayStats?.total_calls || 0} {t.display.answered}
             </div>
           </CardContent>
         </Card>
@@ -193,7 +195,7 @@ export default function DisplayPage() {
             <div className="text-3xl font-bold text-white mb-2">
               {realTimeData?.agents.on_call || 0}
             </div>
-            <div className="text-lg text-blue-200">Çağrıda</div>
+            <div className="text-lg text-blue-200">{t.display.onCall}</div>
           </CardContent>
         </Card>
 
@@ -202,7 +204,7 @@ export default function DisplayPage() {
             <div className="text-3xl font-bold text-white mb-2">
               {todayStats?.missed_calls || 0}
             </div>
-            <div className="text-lg text-blue-200">Kaçırılan</div>
+            <div className="text-lg text-blue-200">{t.statistics.missed}</div>
           </CardContent>
         </Card>
 
@@ -211,7 +213,7 @@ export default function DisplayPage() {
             <div className="text-3xl font-bold text-white mb-2">
               {todayStats?.average_duration ? Math.floor(todayStats.average_duration / 60) : 0}:{todayStats?.average_duration ? (todayStats.average_duration % 60).toString().padStart(2, '0') : '00'}
             </div>
-            <div className="text-lg text-blue-200">Ort. Çağrı Süresi</div>
+            <div className="text-lg text-blue-200">{t.display.avgCallDuration}</div>
           </CardContent>
         </Card>
       </div>
@@ -225,8 +227,8 @@ export default function DisplayPage() {
               <div className="flex items-center space-x-4 mb-6">
                 <Trophy className="h-16 w-16 text-yellow-900" />
                 <div>
-                  <div className="text-2xl text-yellow-900 font-medium">GÜNÜN YILDIZI</div>
-                  <div className="text-sm text-yellow-800">En Yüksek Performans</div>
+                  <div className="text-2xl text-yellow-900 font-medium">{t.display.topPerformer}</div>
+                  <div className="text-sm text-yellow-800">{t.display.topPerformerSubtitle}</div>
                 </div>
               </div>
 
@@ -239,19 +241,19 @@ export default function DisplayPage() {
                   <div className="text-4xl font-bold text-yellow-900">
                     {topPerformer.total_calls}
                   </div>
-                  <div className="text-lg text-yellow-800">Çağrı</div>
+                  <div className="text-lg text-yellow-800">{t.display.calls}</div>
                 </div>
                 <div>
                   <div className="text-4xl font-bold text-yellow-900">
-                    {Math.floor(topPerformer.total_duration / 60)}dk
+                    {Math.floor(topPerformer.total_duration / 60)}{language === 'tr' ? 'dk' : 'min'}
                   </div>
-                  <div className="text-lg text-yellow-800">Toplam</div>
+                  <div className="text-lg text-yellow-800">{t.common.total}</div>
                 </div>
                 <div>
                   <div className="text-4xl font-bold text-yellow-900">
                     {topPerformer.answer_rate.toFixed(0)}%
                   </div>
-                  <div className="text-lg text-yellow-800">Yanıt</div>
+                  <div className="text-lg text-yellow-800">{t.display.answer}</div>
                 </div>
               </div>
             </CardContent>
@@ -263,7 +265,7 @@ export default function DisplayPage() {
           <CardContent className="p-8">
             <div className="flex items-center space-x-3 mb-6">
               <Award className="h-12 w-12 text-blue-300" />
-              <div className="text-3xl font-bold text-white">Liderlik Tablosu</div>
+              <div className="text-3xl font-bold text-white">{t.leaderboard.title}</div>
             </div>
 
             <div className="space-y-4">
@@ -290,7 +292,7 @@ export default function DisplayPage() {
                         {entry.agent_name}
                       </div>
                       <div className="text-lg text-blue-200">
-                        {entry.total_calls} çağrı • {Math.floor(entry.total_duration / 60)}dk
+                        {entry.total_calls} {t.display.calls} • {Math.floor(entry.total_duration / 60)}{language === 'tr' ? 'dk' : 'min'}
                       </div>
                     </div>
                   </div>
