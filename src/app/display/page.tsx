@@ -8,9 +8,13 @@ import {
   dashboardAPI,
   statsAPI,
   compareAPI,
+  agentsAPI,
+  callsAPI,
   RealTimeStatus,
   LeaderboardEntry,
-  ComparisonData
+  ComparisonData,
+  Agent,
+  Call
 } from '@/lib/api';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { Trophy, TrendingUp, TrendingDown, Phone, Users, Clock, Award } from 'lucide-react';
@@ -22,7 +26,9 @@ export default function DisplayPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [comparison, setComparison] = useState<ComparisonData | null>(null);
   const [todayStats, setTodayStats] = useState<any>(null);
-  const { isConnected, lastMessage } = useWebSocket();
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [activeCalls, setActiveCalls] = useState<Call[]>([]);
+  const { isConnected, lastMessage} = useWebSocket();
   const [currentTime, setCurrentTime] = useState(new Date());
 
   // Update time every second
@@ -35,17 +41,21 @@ export default function DisplayPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [realTimeRes, leaderboardRes, comparisonRes, queueStatsRes] = await Promise.all([
+        const [realTimeRes, leaderboardRes, comparisonRes, queueStatsRes, agentsRes, callsRes] = await Promise.all([
           dashboardAPI.getRealTimeStatus(),
           dashboardAPI.getLeaderboard('today', 5),
           compareAPI.getWeekly(),
           statsAPI.getQueueStats('today'),
+          agentsAPI.getAll(),
+          callsAPI.getActive(),
         ]);
 
         if (realTimeRes.data.data) setRealTimeData(realTimeRes.data.data);
         if (leaderboardRes.data.data?.leaderboard) setLeaderboard(leaderboardRes.data.data.leaderboard);
         if (comparisonRes.data.data) setComparison(comparisonRes.data.data);
         if (queueStatsRes.data.data) setTodayStats(queueStatsRes.data.data.statistics);
+        if (agentsRes.data.data?.agents) setAgents(agentsRes.data.data.agents);
+        if (callsRes.data.data?.calls) setActiveCalls(callsRes.data.data.calls || []);
       } catch (error) {
         console.error('Failed to fetch display data:', error);
       }
@@ -219,6 +229,84 @@ export default function DisplayPage() {
               {todayStats?.average_duration ? Math.floor(todayStats.average_duration / 60) : 0}:{todayStats?.average_duration ? (todayStats.average_duration % 60).toString().padStart(2, '0') : '00'}
             </div>
             <div className="text-lg text-blue-200">{t.display.avgCallDuration}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Agent Grid Section */}
+      <div className="mb-8">
+        <Card className="bg-white/10 backdrop-blur-lg border-white/20 shadow-2xl">
+          <CardContent className="p-8">
+            <div className="flex items-center space-x-3 mb-6">
+              <Users className="h-12 w-12 text-blue-300" />
+              <div className="text-3xl font-bold text-white">{language === 'tr' ? 'Aktif Ajanlar' : language === 'de' ? 'Aktive Agenten' : 'Active Agents'}</div>
+            </div>
+
+            <div className="grid grid-cols-5 gap-4">
+              {agents && agents.length > 0 ? (
+                agents.map((agent) => {
+                  // Find if agent has active call
+                  const agentCall = activeCalls.find(call => call.agent_ext === agent.extension);
+                  const isOnCall = agent.status === 'on_call' || agentCall;
+
+                  // Determine background color based on status
+                  let bgColor = 'bg-gray-600/50'; // offline
+                  let borderColor = 'border-gray-500';
+                  let statusIcon = '⚫';
+
+                  if (agent.status === 'available') {
+                    bgColor = 'bg-green-600/30';
+                    borderColor = 'border-green-400';
+                    statusIcon = '🟢';
+                  } else if (isOnCall) {
+                    bgColor = 'bg-red-600/30';
+                    borderColor = 'border-red-400';
+                    statusIcon = '🔴';
+                  } else if (agent.status === 'busy' || agent.status === 'away') {
+                    bgColor = 'bg-yellow-600/30';
+                    borderColor = 'border-yellow-400';
+                    statusIcon = '🟡';
+                  }
+
+                  return (
+                    <Card key={agent.extension} className={`${bgColor} border-2 ${borderColor} shadow-lg`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="text-2xl">{statusIcon}</div>
+                          <div className="text-sm font-mono text-white/80">{agent.extension}</div>
+                        </div>
+                        <div className="text-lg font-bold text-white mb-1 truncate">
+                          {agent.name}
+                        </div>
+                        {isOnCall && agentCall ? (
+                          <div className="text-sm text-white/90 mt-2">
+                            <div className="flex items-center space-x-1">
+                              <Phone className="h-3 w-3" />
+                              <span className="truncate text-xs">{agentCall.caller_number}</span>
+                            </div>
+                            <div className="text-xs text-white/70 mt-1">
+                              {Math.floor(agentCall.duration / 60)}:{(agentCall.duration % 60).toString().padStart(2, '0')}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-sm text-white/70 mt-2">
+                            {agent.status === 'available' ? (language === 'tr' ? 'Müsait' : language === 'de' ? 'Verfügbar' : 'Available') :
+                             agent.status === 'busy' ? (language === 'tr' ? 'Meşgul' : language === 'de' ? 'Beschäftigt' : 'Busy') :
+                             agent.status === 'away' ? (language === 'tr' ? 'Uzakta' : language === 'de' ? 'Abwesend' : 'Away') :
+                             (language === 'tr' ? 'Çevrimdışı' : language === 'de' ? 'Offline' : 'Offline')}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              ) : (
+                <div className="col-span-5 text-center py-8 text-white/60">
+                  <div className="text-2xl mb-2">👥</div>
+                  <div className="text-xl">{language === 'tr' ? 'Ajan bulunamadı' : language === 'de' ? 'Keine Agenten gefunden' : 'No agents found'}</div>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
