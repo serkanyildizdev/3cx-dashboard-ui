@@ -42,7 +42,8 @@ export function useWebSocket() {
       };
 
       ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
+        console.error('WebSocket connection error. Will retry in 3 seconds...');
+        // Note: Browser WebSocket error events don't provide detailed error info
       };
 
       wsRef.current = ws;
@@ -67,7 +68,8 @@ export function useWebSocket() {
         wsRef.current.close();
       }
     };
-  }, [connect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only connect once on mount
 
   return { isConnected, lastMessage };
 }

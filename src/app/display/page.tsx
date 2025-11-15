@@ -52,16 +52,21 @@ export default function DisplayPage() {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 10000); // Refresh every 10 seconds
+    const interval = setInterval(fetchData, 1000); // Refresh every 1 second for real-time monitoring
     return () => clearInterval(interval);
   }, []);
 
-  // Handle WebSocket updates
+  // Handle WebSocket updates - refresh data when call events occur
   useEffect(() => {
-    if (lastMessage && lastMessage.type !== 'welcome') {
-      dashboardAPI.getRealTimeStatus().then((res) => {
-        if (res.data.data) setRealTimeData(res.data.data);
-      });
+    if (lastMessage && lastMessage.type !== 'welcome' && lastMessage.type !== 'ping') {
+      // Only refresh on actual call events (call_started, call_answered, call_ended, call_ringing)
+      Promise.all([
+        dashboardAPI.getRealTimeStatus(),
+        statsAPI.getQueueStats('today'),
+      ]).then(([realTimeRes, queueStatsRes]) => {
+        if (realTimeRes.data.data) setRealTimeData(realTimeRes.data.data);
+        if (queueStatsRes.data.data) setTodayStats(queueStatsRes.data.data.statistics);
+      }).catch(err => console.error('Failed to refresh on WebSocket event:', err));
     }
   }, [lastMessage]);
 
@@ -269,38 +274,45 @@ export default function DisplayPage() {
             </div>
 
             <div className="space-y-4">
-              {leaderboard.slice(0, 5).map((entry, index) => (
-                <div
-                  key={entry.agent_ext}
-                  className={`flex items-center justify-between p-4 rounded-lg ${
-                    index === 0
-                      ? 'bg-yellow-500/30 border-2 border-yellow-400'
-                      : 'bg-white/5'
-                  }`}
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className={`text-3xl font-bold ${
-                      index === 0 ? 'text-yellow-300' :
-                      index === 1 ? 'text-gray-300' :
-                      index === 2 ? 'text-orange-300' :
-                      'text-blue-200'
-                    }`}>
-                      #{entry.rank}
+              {leaderboard && leaderboard.length > 0 ? (
+                leaderboard.slice(0, 5).map((entry, index) => (
+                  <div
+                    key={entry.agent_ext}
+                    className={`flex items-center justify-between p-4 rounded-lg ${
+                      index === 0
+                        ? 'bg-yellow-500/30 border-2 border-yellow-400'
+                        : 'bg-white/5'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className={`text-3xl font-bold ${
+                        index === 0 ? 'text-yellow-300' :
+                        index === 1 ? 'text-gray-300' :
+                        index === 2 ? 'text-orange-300' :
+                        'text-blue-200'
+                      }`}>
+                        #{entry.rank}
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold text-white">
+                          {entry.agent_name}
+                        </div>
+                        <div className="text-lg text-blue-200">
+                          {entry.total_calls} {t.display.calls} • {Math.floor(entry.total_duration / 60)}{language === 'tr' ? 'dk' : 'min'}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-2xl font-bold text-white">
-                        {entry.agent_name}
-                      </div>
-                      <div className="text-lg text-blue-200">
-                        {entry.total_calls} {t.display.calls} • {Math.floor(entry.total_duration / 60)}{language === 'tr' ? 'dk' : 'min'}
-                      </div>
+                    <div className="text-3xl font-bold text-white">
+                      {entry.answer_rate.toFixed(0)}%
                     </div>
                   </div>
-                  <div className="text-3xl font-bold text-white">
-                    {entry.answer_rate.toFixed(0)}%
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-white/60">
+                  <div className="text-2xl mb-2">📊</div>
+                  <div className="text-xl">{language === 'tr' ? 'Henüz veri yok' : language === 'de' ? 'Noch keine Daten' : 'No data yet'}</div>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
